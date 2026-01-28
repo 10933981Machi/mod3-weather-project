@@ -1,0 +1,9 @@
+pyproject.toml
+src/weatherstats/__init__.py
+src/weatherstats/io.py
+src/weatherstats/stats.py
+src/weatherstats_masonmiller.egg-info/PKG-INFO
+src/weatherstats_masonmiller.egg-info/SOURCES.txt
+src/weatherstats_masonmiller.egg-info/dependency_links.txt
+src/weatherstats_masonmiller.egg-info/requires.txt
+src/weatherstats_masonmiller.egg-info/top_level.txt
