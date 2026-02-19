@@ -1,82 +1,49 @@
-# weather_project (Module 4 – Generators, Iterators & Error Handling)
+# Module 6: Phase 6 Submit - Data Patterns, Trends, Visualize
 
-## Dataset
-I used the **Australian Weather Data** dataset from Kaggle (CSV format).  
-The training file loads **99,516 rows**.
+Summary
+- Added visualization helpers: `src/weatherstats/viz.py` — plotting functions using `seaborn` and `matplotlib`. These include simple functional examples using `map`, `filter`, `reduce`, and `lambda` to demonstrate required concepts.
+- Added a CLI to generate static visuals: `scripts/visualize.py`. Running this creates PNGs in `Weather project/visualizations/`.
+- Added a lightweight plot smoke test: `tests/test_viz.py` that runs the plotting pipeline on the test CSV and checks that `total_rainfall` is computed and at least one image is produced.
+- Updated `requirements.txt` to include plotting libraries (`matplotlib`, `seaborn`).
 
-Files:
-- `Data/Weather Training Data.csv`
-- `Data/Weather Test Data.csv`
+Files of interest (changed or new)
+- `src/weatherstats/viz.py` — new: plotting helpers and small functional examples.
+- `scripts/visualize.py` — new: CLI that saves PNG charts.
+- `tests/test_viz.py` — new: lightweight smoke test for plots.
+- `requirements.txt` — updated to include plotting libraries.
 
-## Module 4 Refactoring - What Changed
+What I produced
+- Static visualizations saved to `Weather project/visualizations/` (examples included):
+  - `max_temp_histogram.png`
+  - `rainfall_histogram.png`
+  - `temp_vs_rain_scatter.png`
+  - `box_temps_by_location.png`
+  - `top_locations_by_rain.png`
+  - `run_success.png` (summary image showing the run completed)
 
-### 1. **Generator** - `weather_records_generator()`
-**Location:** `src/weatherstats/io.py`
+Why these were chosen
+- The charts demonstrate distributional properties (histograms), relationships (scatter), and group comparisons (boxplots and bar charts) so trends and patterns are easy to inspect visually.
 
-- **Purpose:** Yields weather records from CSV file one at a time instead of loading entire file into memory
-- **Implementation:** Uses Python's `csv.DictReader` to lazily read rows
-- **Benefit:** Memory-efficient for large datasets; can process millions of records without loading all into RAM
-- **Usage in demo:** First demonstration shows reading first 3 records using the generator
-
-### 2. **Iterator** - `WeatherDataStore.__iter__()`
-**Location:** `src/weatherstats/stats.py`
-
-- **Purpose:** Makes `WeatherDataStore` iterable by implementing `__iter__()` method
-- **Implementation:** Iterates through DataFrame rows and yields them as dictionaries
-- **Benefit:** Allows natural Python iteration syntax: `for record in store:`
-- **Usage in demo:** Second demonstration shows iterating through first 3 rows stored in WeatherDataStore
-
-### 3. **Error Handling**
-**Locations:** `src/weatherstats/io.py` and `src/weatherstats/stats.py`
-
-#### In `io.py`:
-- File existence validation before processing
-- Try-except blocks for file I/O operations
-- Proper error messages logged for debugging
-
-#### In `stats.py`:
-- Column existence checks before computation
-- Try-except wrapper in `descriptive_stats()` method
-- Graceful handling of invalid or missing data
-- Warning logs when data is unavailable
-
-### 4. **Logging System**
-**Location:** All modules (`src/weatherstats/__init__.py`, `io.py`, `stats.py`)
-
-- **Configuration:** Logger setup in package `__init__.py`
-- **Usage:** All modules use `logger = logging.getLogger(__name__)` to get module-specific logger
-- **Levels:** INFO for major operations, DEBUG for iterator creation, WARNING for data issues, ERROR for failures
-- **Benefit:** Transparent view of what the application is doing without changing any outputs
-
-## Code Changes Summary
-
-| Component | Change | Reason |
-|-----------|--------|--------|
-| `weather_records_generator()` | New generator function | Memory-efficient CSV reading |
-| `WeatherDataStore.__iter__()` | New iterator method | Makes class iterable |
-| Error handling | Added try-except blocks | Robust file and data validation |
-| Logging | Added logger configuration | Transparent debugging and monitoring |
-
-## Running the Demo
-
-From inside the `Weather project/` folder:
-
+Minimal run instructions
+1) From the repository root, go to the project folder:
 ```bash
-python3 scripts/run_demo.py
+cd "Weather project"
+```
+2) Install dependencies (recommended virtual environment):
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+3) Generate visualizations:
+```bash
+python3 scripts/visualize.py
 ```
 
-The demo demonstrates:
-1. **Generator:** Reads CSV records lazily without loading entire file
-2. **Iterator:** Traverses stored data using Python iteration protocol
-3. **Error Handling:** Gracefully handles file and data validation errors
-4. **Logging:** Shows INFO, WARNING, and ERROR messages for operations
+Automated checks included
+- Existing tests for data loading, generator, `WeatherDataStore`, and `WeatherAnalyzer` (unchanged).
+- New `tests/test_viz.py` smoke test for the plotting pipeline.
 
-Expected output shows successful generator and iterator usage with 99,516 rows loaded and statistics computed for temperature and rainfall columns.
-
-## Design Principles Maintained
-
-- ✓ No new source files created
-- ✓ All existing class and function names preserved  
-- ✓ Logic and outputs unchanged
-- ✓ Minimal, readable refactoring
-- ✓ Backward compatible with existing code
+Notes and assumptions
+- Some CSV fields include `NA` or missing values; numeric conversions use `errors='coerce'` and NaNs are ignored for plotting.
+- The supplied CSVs do not contain a usable `Date` column; the code attempts a date-based time series if present, otherwise it produces the fallback static charts listed above.
