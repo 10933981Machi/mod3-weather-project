@@ -3,12 +3,14 @@ io.py
 
 Handles loading weather datasets from CSV files using pandas.
 Includes a generator for memory-efficient row-by-row processing.
+Provides both synchronous and asynchronous APIs.
 """
 
 from pathlib import Path
 import csv
 import pandas as pd
 import logging
+import asyncio
 
 logger = logging.getLogger(__name__)
 
@@ -82,4 +84,62 @@ def load_weather_csv(csv_path: str | Path) -> pd.DataFrame:
         raise
     except Exception as e:
         logger.error(f"Error loading CSV file: {e}")
+        raise
+
+
+async def async_load_weather_csv(csv_path: str | Path) -> pd.DataFrame:
+    """
+    Asynchronously load a weather CSV file into a pandas DataFrame.
+    
+    Runs the synchronous load_weather_csv in a thread pool via asyncio.to_thread,
+    preventing the event loop from being blocked by I/O operations.
+    
+    Args:
+        csv_path: Path to the CSV file.
+    
+    Returns:
+        A pandas DataFrame containing the dataset.
+    
+    Raises:
+        FileNotFoundError: If the CSV file does not exist.
+        Exception: If there is an error loading the file.
+    """
+    csv_path = Path(csv_path)
+    logger.debug(f"Starting async load of CSV: {csv_path}")
+    try:
+        df = await asyncio.to_thread(load_weather_csv, csv_path)
+        logger.info(f"Async load completed for {csv_path.name}")
+        return df
+    except Exception as e:
+        logger.error(f"Error in async_load_weather_csv: {e}")
+        raise
+
+
+async def weather_records_generator_async(csv_path: str | Path):
+    """
+    Asynchronously yield weather records from a CSV file.
+    
+    Wraps the synchronous weather_records_generator via asyncio.to_thread,
+    allowing non-blocking iteration through records without blocking the event loop.
+    
+    Args:
+        csv_path: Path to the CSV file.
+    
+    Yields:
+        Dictionary representing each weather record.
+    
+    Raises:
+        FileNotFoundError: If the CSV file does not exist.
+        Exception: If there is an error reading the file.
+    """
+    csv_path = Path(csv_path)
+    logger.debug(f"Starting async generator for: {csv_path}")
+    def get_records():
+        return list(weather_records_generator(csv_path))
+    try:
+        records = await asyncio.to_thread(get_records)
+        for record in records:
+            yield record
+    except Exception as e:
+        logger.error(f"Error in weather_records_generator_async: {e}")
         raise

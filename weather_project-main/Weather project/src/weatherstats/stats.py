@@ -4,10 +4,13 @@ stats.py
 Provides classes for storing weather data and computing descriptive statistics
 using pandas. Refactored from a functional approach to an OOP-based design.
 Includes an iterator for row-by-row access to the dataset.
+Includes parallel processing for compute-intensive tasks using multiprocessing.
 """
 
 import pandas as pd
 import logging
+import os
+from concurrent.futures import ProcessPoolExecutor
 
 logger = logging.getLogger(__name__)
 
@@ -96,3 +99,82 @@ class WeatherAnalyzer:
         except Exception as e:
             logger.error(f"Error computing statistics for column '{column}': {e}")
             return {"column": column, "error": str(e)}
+
+    def descriptive_stats_parallel(self, columns: list[str] | None = None, workers: int | None = None) -> list[dict]:
+        """
+        Compute descriptive statistics for multiple numeric columns in parallel.
+        
+        Uses ProcessPoolExecutor to distribute per-column computation across multiple processes,
+        improving performance on multi-core systems for large datasets.
+        
+        Args:
+            columns: List of column names to compute stats for. If None, uses all columns.
+            workers: Number of worker processes. If None, defaults to os.cpu_count().
+        
+        Returns:
+            List of dictionaries, each containing statistics for a column.
+        """
+        df = self._store.get_dataframe()
+        
+        if columns is None:
+            columns = df.columns.tolist()
+        
+        if not columns:
+            logger.warning("No columns specified for parallel stats computation")
+            return []
+        
+        if workers is None:
+            workers = os.cpu_count() or 1
+        
+        logger.info(f"Computing stats for {len(columns)} columns using {workers} workers")
+        
+        try:
+            with ProcessPoolExecutor(max_workers=workers) as executor:
+                # Use map to submit all column computations in parallel
+                results = list(executor.map(_compute_column_stats, [df] * len(columns), columns))
+            logger.info(f"Parallel computation completed for {len(columns)} columns")
+            return results
+        except Exception as e:
+            logger.error(f"Error in descriptive_stats_parallel: {e}")
+            return []
+
+
+def _compute_column_stats(df: pd.DataFrame, column: str) -> dict:
+    """
+    Worker function for parallel statistics computation.
+    
+    Computes descriptive statistics for a single column.
+    This function runs in a separate process via ProcessPoolExecutor.
+    
+    Args:
+        df: The DataFrame to compute stats from.
+        column: The column name to compute stats for.
+    
+    Returns:
+        Dictionary containing statistics for the column.
+    """
+    try:
+        if column not in df.columns:
+            return {"column": column, "error": "Column not found"}
+        
+        series = pd.to_numeric(df[column], errors="coerce").dropna()
+        if series.empty:
+            return {"column": column, "error": "No valid numeric values found"}
+        
+        mode_vals = series.mode()
+        mode = mode_vals.iloc[0] if not mode_vals.empty else None
+        
+        return {
+            "column": column,
+            "count": int(series.count()),
+            "mean": float(series.mean()),
+            "median": float(series.median()),
+            "mode": float(mode) if mode is not None else None,
+            "min": float(series.min()),
+            "max": float(series.max()),
+            "range": float(series.max() - series.min()),
+            "std": float(series.std()),
+            "var": float(series.var()),
+        }
+    except Exception as e:
+        return {"column": column, "error": str(e)}
