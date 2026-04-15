@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Stats - {{ column }}{% endblock %}
+{% block content %}
+<h1>Descriptive Statistics: {{ column }}</h1>
+<p>Dataset: {{ dataset }}</p>
+
+<table>
+    <tr><th>Statistic</th><th>Value</th></tr>
+    <tr><td>Count</td><td>{{ result.count }}</td></tr>
+    <tr><td>Mean</td><td>{{ "%.4f"|format(result.mean) }}</td></tr>
+    <tr><td>Median</td><td>{{ "%.4f"|format(result.median) }}</td></tr>
+    <tr><td>Mode</td><td>{{ "%.4f"|format(result.mode) if result.mode is not none else "N/A" }}</td></tr>
+    <tr><td>Min</td><td>{{ "%.4f"|format(result.min) }}</td></tr>
+    <tr><td>Max</td><td>{{ "%.4f"|format(result.max) }}</td></tr>
+    <tr><td>Range</td><td>{{ "%.4f"|format(result.range) }}</td></tr>
+    <tr><td>Std Dev</td><td>{{ "%.4f"|format(result.std) }}</td></tr>
+    <tr><td>Variance</td><td>{{ "%.4f"|format(result.var) }}</td></tr>
+</table>
+
+<br>
+<a href="/">&larr; Back</a>
+{% endblock %}

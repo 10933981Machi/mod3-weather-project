@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Visualizations{% endblock %}
+{% block content %}
+<h1>Visualizations</h1>
+<p>Pick a chart type and dataset below.</p>
+
+{% if error %}
+<p class="error">{{ error }}</p>
+{% endif %}
+
+<form method="POST" action="/viz">
+    <div class="form-group">
+        <label for="dataset">Dataset:</label>
+        <select name="dataset" id="dataset">
+            <option value="training" {% if dataset == "training" %}selected{% endif %}>Training Data</option>
+            <option value="test" {% if dataset == "test" %}selected{% endif %}>Test Data</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="plot_type">Chart Type:</label>
+        <select name="plot_type" id="plot_type">
+            <option value="rainfall_hist" {% if plot_type == "rainfall_hist" %}selected{% endif %}>Rainfall Histogram</option>
+            <option value="avg_temp_location" {% if plot_type == "avg_temp_location" %}selected{% endif %}>Average Max Temp by Location</option>
+            <option value="humidity_box" {% if plot_type == "humidity_box" %}selected{% endif %}>Humidity 9am vs 3pm</option>
+        </select>
+    </div>
+    <button type="submit">Generate Chart</button>
+</form>
+
+{% if plot_data %}
+<div class="plot-container">
+    <img src="data:image/png;base64,{{ plot_data }}" alt="Weather chart">
+</div>
+{% endif %}
+{% endblock %}

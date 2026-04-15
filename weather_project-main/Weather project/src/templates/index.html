@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Weather Stats - Home{% endblock %}
+{% block content %}
+<h1>Weather Data Explorer</h1>
+<p>Select a dataset and a column to view descriptive statistics.</p>
+
+{% if error %}
+<p class="error">{{ error }}</p>
+{% endif %}
+
+<form method="POST" action="/stats">
+    <div class="form-group">
+        <label for="dataset">Dataset:</label>
+        <select name="dataset" id="dataset">
+            <option value="training">Training Data</option>
+            <option value="test">Test Data</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="column">Column:</label>
+        <select name="column" id="column">
+            {% for col in columns %}
+            <option value="{{ col }}">{{ col }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <button type="submit">Get Stats</button>
+</form>
+{% endblock %}

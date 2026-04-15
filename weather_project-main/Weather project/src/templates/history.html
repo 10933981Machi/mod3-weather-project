@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Query History{% endblock %}
+{% block content %}
+<h1>Query History</h1>
+<p>Last 50 column lookups (stored in SQLite).</p>
+
+{% if entries %}
+<table>
+    <tr>
+        <th>#</th>
+        <th>Column</th>
+        <th>Dataset</th>
+        <th>Time</th>
+    </tr>
+    {% for entry in entries %}
+    <tr>
+        <td>{{ entry.id }}</td>
+        <td>{{ entry.column }}</td>
+        <td>{{ entry.dataset }}</td>
+        <td>{{ entry.queried_at.strftime("%Y-%m-%d %H:%M:%S") }}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% else %}
+<p>No queries yet. Go to the home page and look up some stats.</p>
+{% endif %}
+{% endblock %}

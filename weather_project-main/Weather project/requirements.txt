@@ -6,3 +6,6 @@ pyspark>=3.4.0
 
 matplotlib>=3.5.0
 seaborn>=0.12.0
+flask>=2.3.0
+flask-sqlalchemy>=3.0.0
+sqlalchemy>=2.0.0
