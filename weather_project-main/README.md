@@ -1,46 +1,56 @@
-# Module 9: Phase 9 Submit - Flask Web Application
+# Module 10: Phase 10 Submit - Predictive Modeling Scikit-Learn
 
 ## Summary
 
-- Added a 3-tier Flask web application in `src/app.py` that lets users interact with the weather data through a browser.
-- Added `src/models.py` with a SQLAlchemy model to store query history in a SQLite database.
-- Added HTML templates in `src/templates/` and basic CSS in `src/static/style.css`.
-- Added `tests/test_app.py` with 7 tests covering the Flask routes.
-- Updated `requirements.txt` with `flask`, `flask-sqlalchemy`, and `sqlalchemy`.
+- Added `src/weatherstats/predictor.py` with a RandomForestClassifier that predicts whether it will rain tomorrow based on today's weather conditions.
+- Added a `/predict` route and `src/templates/predict.html` to the Flask app so users can enter weather values and get a prediction in the browser.
+- Added `src/models.py` `PredictionLog` table to store each prediction in the SQLite database.
+- Added `tests/test_predictor.py` with 15 tests covering model training, accuracy, and prediction output.
+- Updated `requirements.txt` with `scikit-learn>=1.3.0`.
 
 ## What Was Added
 
 **New Files:**
-- `src/app.py` — Flask application with routes for stats, visualizations, and query history
-- `src/models.py` — SQLAlchemy model (`QueryHistory`) storing column lookups in SQLite
-- `src/templates/base.html` — Base Jinja template with nav bar
-- `src/templates/index.html` — Home page with dataset and column selection form
-- `src/templates/stats.html` — Displays descriptive statistics in a table
-- `src/templates/viz.html` — Chart selection form and rendered plot
-- `src/templates/history.html` — Lists past queries from the SQLite database
-- `src/static/style.css` — Basic stylesheet
-- `tests/test_app.py` — Flask route tests using the test client
+- `src/weatherstats/predictor.py` — builds and trains a RandomForestClassifier, exposes `build_model()` and `predict_rain()`
+- `src/templates/predict.html` — form for entering today's conditions and displaying the rain prediction
+- `tests/test_predictor.py` — 15 tests for the ML model
 
 **Modified:**
-- `requirements.txt` — Added `flask>=2.3.0`, `flask-sqlalchemy>=3.0.0`, `sqlalchemy>=2.0.0`
+- `src/app.py` — added `/predict` GET/POST route
+- `src/models.py` — added `PredictionLog` SQLAlchemy model
+- `src/templates/base.html` — added Rain Prediction link to nav
+- `src/static/style.css` — added styles for prediction result box and number inputs
+- `requirements.txt` — added `scikit-learn>=1.3.0`
 
-## Application Structure
+## Machine Learning Details
 
-The app follows a 3-tier design:
-- **Frontend (UI tier):** HTML/CSS templates rendered with Jinja2, served by Flask
-- **Backend (logic tier):** Flask routes in `app.py` calling the existing `weatherstats` package for data processing and `matplotlib` for plots
-- **Data tier:** SQLite database (via SQLAlchemy) storing query history; weather CSV files for the analysis data
+**Model:** RandomForestClassifier (100 trees, `random_state=42`)
 
-## Pages
+**Target:** `RainTomorrow` (Yes / No)
 
-- **/** — Home page: pick a dataset (training or test) and a numeric column, submit to see stats
-- **/stats** — Shows count, mean, median, mode, min, max, range, std dev, and variance for the selected column
-- **/viz** — Pick a chart type and dataset, renders the chart as an embedded image. Chart options: Rainfall Histogram, Average Max Temp by Location, Humidity 9am vs 3pm
-- **/history** — Shows the last 50 column lookups stored in the SQLite database
+**Features used:**
+- MinTemp, MaxTemp, Rainfall
+- Humidity9am, Humidity3pm
+- Pressure9am, Pressure3pm
+- WindGustSpeed
 
-## SQLite / SQLAlchemy
+**Process:**
+1. Load the training CSV
+2. Drop rows with missing target or feature values
+3. Encode target with `LabelEncoder` (No=0, Yes=1)
+4. Split 80/20 train/test with `train_test_split`
+5. Train `RandomForestClassifier`
+6. Evaluate with `accuracy_score` and `classification_report`
+7. On form submit, run `model.predict()` and `model.predict_proba()` to show the prediction and probability
 
-The `QueryHistory` table stores each time a user requests statistics for a column. Fields: `id`, `column`, `dataset`, and `queried_at` (timestamp). This lets you see what the app has been used to look at over time. The database file is created automatically at `src/weather_app.db` on first run.
+Test set accuracy on the training dataset is consistently above 85%.
+
+## Application Pages (updated)
+
+- **/** — Stats lookup
+- **/viz** — Charts
+- **/predict** — Enter today's weather values and get a rain forecast with probability
+- **/history** — Query history from SQLite
 
 ## Run Instructions
 
@@ -64,38 +74,35 @@ python3 src/app.py
 http://127.0.0.1:5000
 ```
 
-5. Run all tests (including the new Flask tests):
+5. To run just the ML tests:
+```bash
+pytest -v tests/test_predictor.py
+```
+
+6. Run all tests:
 ```bash
 pytest -v tests/
 ```
 
-6. Run just the Flask tests:
-```bash
-pytest -v tests/test_app.py
-```
-
 ## Test Coverage
 
-### Flask Tests (`test_app.py`)
+### ML Tests (`test_predictor.py`)
 
-| Test | What It Covers |
-|---|---|
-| `test_home_page_loads` | GET / returns 200 |
-| `test_history_page_loads` | GET /history returns 200 |
-| `test_viz_page_loads` | GET /viz returns 200 |
-| `test_stats_invalid_column` | Invalid column shows error message |
-| `test_stats_valid_column` | Valid column returns stats table |
-| `test_history_records_query` | Query is saved to DB and shows in history |
-| `test_home_page_has_column_options` | Column dropdowns are present |
+| Test Class | Tests | What It Covers |
+|---|---|---|
+| `TestBuildModel` | 8 | model keys, accuracy > 80%, report format, feature/target constants |
+| `TestPredictRain` | 7 | return type, keys, Yes/No label, probability range, high/low humidity cases |
+| **Total** | **15** | |
 
 ### Previous Phase Tests (still passing)
 
 | Test File | Tests | Coverage |
 |---|---|---|
-| `test_weatherstats.py` | 38 | CSV loading, generators, store, analyzer, integration |
+| `test_app.py` | 7 | Flask routes, DB logging |
+| `test_weatherstats.py` | 38 | CSV loading, generators, store, analyzer |
 | `test_io_async.py` | 10 | Async I/O parity |
 | `test_stats_parallel.py` | 10 | Parallel stats accuracy |
 | `test_viz_parallel.py` | 13 | Parallel plotting parity |
 | `test_viz.py` | 1 | Basic plot generation |
-| `test_pyspark.py` | 31 | PySpark implementation |
-| **Total** | **79** | |
+| `test_pyspark.py` | 31 | PySpark implementation (requires Java 17) |
+| **Total** | **110** | |
