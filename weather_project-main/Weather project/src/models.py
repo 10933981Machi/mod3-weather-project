@@ -14,3 +14,18 @@ class QueryHistory(db.Model):
 
     def __repr__(self):
         return f"<QueryHistory {self.column} ({self.dataset})>"
+
+
+class PredictionLog(db.Model):
+    __tablename__ = "prediction_log"
+
+    id = db.Column(db.Integer, primary_key=True)
+    prediction = db.Column(db.String(10), nullable=False)
+    probability = db.Column(db.Float, nullable=False)
+    min_temp = db.Column(db.Float)
+    max_temp = db.Column(db.Float)
+    humidity_3pm = db.Column(db.Float)
+    predicted_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<PredictionLog {self.prediction} ({self.probability}%)>"

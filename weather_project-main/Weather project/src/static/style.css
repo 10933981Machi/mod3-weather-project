@@ -116,3 +116,32 @@ table tr:nth-child(even) {
 a {
     color: #2c3e50;
 }
+
+input[type="number"] {
+    padding: 6px 10px;
+    font-size: 14px;
+    width: 160px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+}
+
+.prediction-result {
+    margin-top: 25px;
+    padding: 15px 20px;
+    background-color: #eaf4ea;
+    border: 1px solid #b2d8b2;
+    border-radius: 4px;
+}
+
+.prediction-result h2 {
+    margin-bottom: 8px;
+}
+
+pre {
+    background-color: #f0f0f0;
+    padding: 12px;
+    font-size: 13px;
+    overflow-x: auto;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+}

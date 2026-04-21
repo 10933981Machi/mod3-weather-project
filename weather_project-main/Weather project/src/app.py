@@ -13,7 +13,8 @@ from flask import Flask, render_template, request
 
 sys.path.insert(0, str(Path(__file__).parent))
 from weatherstats import load_weather_csv, WeatherDataStore, WeatherAnalyzer
-from models import db, QueryHistory
+from weatherstats.predictor import build_model, predict_rain, FEATURES
+from models import db, QueryHistory, PredictionLog
 
 app = Flask(__name__)
 
@@ -137,6 +138,53 @@ def viz():
 def history():
     entries = QueryHistory.query.order_by(QueryHistory.queried_at.desc()).limit(50).all()
     return render_template("history.html", entries=entries)
+
+
+@app.route("/predict", methods=["GET", "POST"])
+def predict():
+    result = None
+    error = None
+    accuracy = None
+    report = None
+
+    # Train model on first use (training data only)
+    csv_path = DATASETS["training"]
+
+    try:
+        model_data = build_model(csv_path)
+    except Exception as e:
+        error = f"Could not train model: {e}"
+        return render_template("predict.html", features=FEATURES, result=result, error=error)
+
+    accuracy = round(model_data["accuracy"] * 100, 2)
+    report = model_data["report"]
+
+    if request.method == "POST":
+        try:
+            feature_values = {f: request.form.get(f, 0) for f in FEATURES}
+            result = predict_rain(model_data["model"], model_data["le"], feature_values)
+
+            log = PredictionLog(
+                prediction=result["prediction"],
+                probability=result["probability"],
+                min_temp=float(feature_values.get("MinTemp", 0)),
+                max_temp=float(feature_values.get("MaxTemp", 0)),
+                humidity_3pm=float(feature_values.get("Humidity3pm", 0)),
+            )
+            db.session.add(log)
+            db.session.commit()
+
+        except Exception as e:
+            error = f"Prediction failed: {e}"
+
+    return render_template(
+        "predict.html",
+        features=FEATURES,
+        result=result,
+        error=error,
+        accuracy=accuracy,
+        report=report,
+    )
 
 
 if __name__ == "__main__":

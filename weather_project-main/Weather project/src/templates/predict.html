@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Rain Prediction{% endblock %}
+{% block content %}
+<h1>Will It Rain Tomorrow?</h1>
+<p>Enter today's weather conditions and the model will predict whether it will rain tomorrow.</p>
+<p>Model accuracy on test set: <strong>{{ accuracy }}%</strong></p>
+
+{% if error %}
+<p class="error">{{ error }}</p>
+{% endif %}
+
+<form method="POST" action="/predict">
+    <div class="form-group">
+        <label for="MinTemp">Min Temp (°C):</label>
+        <input type="number" step="0.1" name="MinTemp" id="MinTemp" value="10.0" required>
+    </div>
+    <div class="form-group">
+        <label for="MaxTemp">Max Temp (°C):</label>
+        <input type="number" step="0.1" name="MaxTemp" id="MaxTemp" value="22.0" required>
+    </div>
+    <div class="form-group">
+        <label for="Rainfall">Rainfall (mm):</label>
+        <input type="number" step="0.1" name="Rainfall" id="Rainfall" value="0.0" required>
+    </div>
+    <div class="form-group">
+        <label for="Humidity9am">Humidity 9am (%):</label>
+        <input type="number" step="1" name="Humidity9am" id="Humidity9am" value="70" required>
+    </div>
+    <div class="form-group">
+        <label for="Humidity3pm">Humidity 3pm (%):</label>
+        <input type="number" step="1" name="Humidity3pm" id="Humidity3pm" value="50" required>
+    </div>
+    <div class="form-group">
+        <label for="Pressure9am">Pressure 9am (hPa):</label>
+        <input type="number" step="0.1" name="Pressure9am" id="Pressure9am" value="1015.0" required>
+    </div>
+    <div class="form-group">
+        <label for="Pressure3pm">Pressure 3pm (hPa):</label>
+        <input type="number" step="0.1" name="Pressure3pm" id="Pressure3pm" value="1012.0" required>
+    </div>
+    <div class="form-group">
+        <label for="WindGustSpeed">Wind Gust Speed (km/h):</label>
+        <input type="number" step="1" name="WindGustSpeed" id="WindGustSpeed" value="30" required>
+    </div>
+    <button type="submit">Predict</button>
+</form>
+
+{% if result %}
+<div class="prediction-result">
+    <h2>Result: {{ result.prediction }}</h2>
+    <p>Probability of rain tomorrow: <strong>{{ result.probability }}%</strong></p>
+</div>
+{% endif %}
+
+<h3 style="margin-top:30px;">Model Classification Report</h3>
+<pre>{{ report }}</pre>
+
+{% endblock %}
