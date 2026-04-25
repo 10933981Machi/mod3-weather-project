@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Upload CSV - Weather Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="app-header">
+        <h1>Australian Weather Analytics Dashboard</h1>
+        {% if username %}
+        <span class="header-user">Logged in as {{ username }}</span>
+        {% endif %}
+    </div>
+    <div class="auth-container">
+        <h2>Upload CSV</h2>
+        <p>Upload Australian weather data</p>
+        {% if error %}
+        <p class="error">{{ error }}</p>
+        {% endif %}
+        <form method="POST" action="/upload" enctype="multipart/form-data">
+            <div class="form-group">
+                <input type="file" name="csv_file" accept=".csv" required>
+            </div>
+            <button type="submit">Upload</button>
+        </form>
+        <p style="margin-top:20px; font-size:13px;">
+            <a href="{{ url_for('logout') }}">Logout</a>
+        </p>
+    </div>
+</body>
+</html>

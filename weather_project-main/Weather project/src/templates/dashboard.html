@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<h1>Weather Analytics Dashboard</h1>
+<p>Select a category to explore the uploaded weather data. Then pick a city.</p>
+
+<div class="btn-group">
+    <button class="cat-btn" data-cat="temperature" onclick="selectCategory('temperature')">Temperature Trends</button>
+    <button class="cat-btn" data-cat="rainfall" onclick="selectCategory('rainfall')">Rainfall Patterns</button>
+    <button class="cat-btn" data-cat="extreme" onclick="selectCategory('extreme')">Extreme Weather</button>
+</div>
+
+<div id="city-group" style="display:none; margin-top:20px;">
+    <div class="form-group">
+        <label for="city-select">Select City:</label>
+        <select id="city-select" onchange="loadChart()">
+            <option value="">-- Select a city --</option>
+        </select>
+    </div>
+</div>
+
+<div id="chart-area" style="margin-top:20px;"></div>
+
+<div id="summary-area" style="display:none; margin-top:15px; padding:12px; background:#f0f4f8; border:1px solid #ccc; border-radius:3px;"></div>
+
+<script>
+var currentCategory = null;
+
+function selectCategory(cat) {
+    currentCategory = cat;
+
+    document.querySelectorAll('.cat-btn').forEach(function(b) {
+        b.classList.remove('active');
+    });
+    document.querySelector('[data-cat="' + cat + '"]').classList.add('active');
+
+    document.getElementById('chart-area').innerHTML = '';
+    document.getElementById('summary-area').style.display = 'none';
+
+    fetch('/api/cities')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.error) {
+                document.getElementById('chart-area').innerHTML = '<p class="error">' + data.error + '</p>';
+                return;
+            }
+            var sel = document.getElementById('city-select');
+            sel.innerHTML = '<option value="">-- Select a city --</option>';
+            data.cities.forEach(function(c) {
+                var opt = document.createElement('option');
+                opt.value = c;
+                opt.textContent = c;
+                sel.appendChild(opt);
+            });
+            document.getElementById('city-group').style.display = 'block';
+        });
+}
+
+function loadChart() {
+    var city = document.getElementById('city-select').value;
+    if (!city || !currentCategory) return;
+
+    document.getElementById('chart-area').innerHTML = '<p>Loading...</p>';
+    document.getElementById('summary-area').style.display = 'none';
+
+    fetch('/api/chart?category=' + currentCategory + '&city=' + encodeURIComponent(city))
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.error) {
+                document.getElementById('chart-area').innerHTML = '<p class="error">' + data.error + '</p>';
+                return;
+            }
+            document.getElementById('chart-area').innerHTML =
+                '<img src="data:image/png;base64,' + data.chart + '" alt="chart" style="max-width:100%;">';
+            var summaryEl = document.getElementById('summary-area');
+            summaryEl.textContent = data.summary;
+            summaryEl.style.display = 'block';
+        });
+}
+</script>
+{% endblock %}
